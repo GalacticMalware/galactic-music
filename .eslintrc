@@ -1,0 +1,14 @@
+{
+    "extends": "standard",
+    
+    "rules": {
+        "no-new": 0,
+        "no-import": 0
+    },
+
+    "plugins": ["html"],
+    "settings": {
+        "html/javascript-mime-types": ["text/javascript", "text/jsx"],  // also use script tags with a "text/jsx" type attribute
+        "html/javascript-mime-types": "/^text\\/(javascript|jsx)$/"    // same thing
+    }
+} 
