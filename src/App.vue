@@ -1,8 +1,12 @@
 <template lang="pug">
   #app
    <!-- img(src="./assets/logo.png") -->
-    section.section
-      nav.navbar.has-shadow
+    GMHeader
+    GMNotifcation(v-show="showNotification")
+      p(slot="body") No se encontraron resultados
+    GMLoader(v-show="isLoading")
+    section.section(v-show="!isLoading")
+      nav.nav
         .container.results
           input.input.is-large(type="text", 
             placeholder="Buscar canciones",
@@ -16,41 +20,66 @@
          
 
     .container.results
-      .columns
-        .column(v-for="t in tracks") 
-          | {{t.title}} - {{t.artist.name}}
+      .columns.is-multiline
+        .column.is-one-quarter(v-for="t in tracks")
+          GMTrack(
+            :class="{ 'is-active' : t.id === selectedTrackID }",
+            :track="t", 
+            @select="setSelectedTrack") 
+          <!--| {{t.title}} - {{t.artist.name}} -->
+
+    GMFooter
             
 </template>
 
 <script>
-import trackService from './services/track'
+import trackService from '@/services/track'
+import GMFooter from '@/components/layout/Footer'
+import GMHeader from '@/components/layout/Header'
+import GMTrack from '@/components/Track.vue'
+import GMLoader from '@/components/shared/Loader.vue'
+import GMNotifcation from '@/components/shared/Notification.vue'
 
 export default {
+  components:{GMFooter,GMHeader,GMTrack,GMLoader,GMNotifcation},
   name: 'app',
   data () {
     return {
       searchQuery:'',
       tracks:[],
-      searchMessage:''
+      searchMessage:'',
+      isLoading:false,
+      selectedTrackID:'',
+      showNotification:false,
     }
   },
-  methods:{
-   Search(){
-     if(!this.searchQuery)return 
-     trackService.search(this.searchQuery)
-     .then(res =>{
-       this.tracks = res.data
-       this.searchMessage = this.tracks.length
-       console.log(res.data)
-     })
-   },
-   computed:{
+computed:{
      searchMessage(){
         return `Encontrado: ${this.tracks.length}`
      }
-   }
+   },
+  methods:{
+   Search(){
+     if(!this.searchQuery)return
+     this.isLoading = true 
+     trackService.search(this.searchQuery)
+     .then(res =>{
+       this.showNotification = res.data.length === 0
+       this.isLoading = false
+       this.tracks = res.data
+       //this.searchMessage = this.tracks.length
+       //console.log(res.data)
+     }).catch(err =>{
+       showNotification=true
+     })
+   },
+   setSelectedTrack(id){
+     this.selectedTrackID = id
+   },
     
   }
+  
+   
 }
 </script>
 
@@ -59,5 +88,9 @@ export default {
 
   .results{
     margin-top: 50px;
+  }
+
+  .is-active{
+    border:3px #23d160 solid;
   }
 </style>
